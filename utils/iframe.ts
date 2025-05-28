@@ -35,3 +35,11 @@ export function postMessageEligibilityDone(
     targetOrigin,
   )
 }
+
+export function getIframeHostFromEvent(event: MessageEvent): string | null {
+  if (event.data.kind === 'mesaidesreno-init') {
+    return event.origin
+  }
+
+  return null
+}

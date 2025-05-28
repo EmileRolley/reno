@@ -14,18 +14,48 @@ export function useSendDataToHost() {
   console.log('iframe host', host)
 
   useEffect(() => {
+    if (!isInIframe) return
+
+    top?.parent.addEventListener('message', (event) => {
+      console.log(
+        '[DEBUG] message event received:',
+        JSON.stringify(event.data, null, 2),
+      )
+      const hostName = iframe.getIframeHostFromEvent(event)
+      console.log('[DEBUG] hostName', hostName)
+      if (hostName) {
+        setHost(hostName)
+        if (hostName.endsWith('.gouv.fr')) {
+          setConsent(true)
+        }
+      }
+    })
+
+    return () => {
+      top?.parent.removeEventListener('message', () => {})
+    }
+  }, [isInIframe])
+
+  useEffect(() => {
     console.log('indigo consent isInIframe', isInIframe)
     if (!isInIframe) return
 
-    const hostName =
-      window.location != window.parent.location
-        ? document.referrer.split('/')[2]
-        : document.location.hostname
-    setHost(hostName)
+    console.log(`[DEBUG] window.location: [${window.location.hostname}]`)
+    console.log(
+      `[DEBUG] window.parent.location: [${window.parent.location.hostname}]`,
+    )
+    console.log(
+      `[DEBUG] window.top.location: [${JSON.stringify(top?.parent.location, null, 2)}]`,
+    )
+    console.log(`[DEBUG] document.reffer: [${document.location.host}]`)
+    // const hostName =
+    //   window.location != window.parent.location
+    //     ? document.referrer.split('/')[2]
+    //     : document.location.hostname
 
-    console.log('hostName:', hostName)
-
-    if (hostName.endsWith('.gouv.fr')) setConsent(true)
+    // setHost(hostName)
+    //
+    // if (hostName.endsWith('.gouv.fr')) setConsent(true)
 
     const params = new URLSearchParams(
       typeof window !== 'undefined' ? window.location.search : '/',
